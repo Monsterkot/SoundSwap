@@ -1,0 +1,39 @@
+plugins {
+    id 'vkid.manifest.placeholders' version '1.1.0' apply true
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://artifactory-external.vkpartner.ru/artifactory/vkid-sdk-android/' }
+    }
+}
+
+rootProject.buildDir = "../build"
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}
+
+def localProperties = new Properties()
+file("local.properties").withInputStream { stream -> localProperties.load(stream) }
+
+def clientId = localProperties.getProperty("VKIDClientID")
+def clientSecret = localProperties.getProperty("VKIDClientSecret")
+def vkIdRedirectHost = localProperties.getProperty("VKIDRedirectHost")
+def vkIdRedirectScheme = localProperties.getProperty("VKIDRedirectScheme")
+
+// Добавление значений в Manifest Placeholders.
+vkidManifestPlaceholders {
+    vkidRedirectHost = vkIdRedirectHost // Обычно vk.com.
+    vkidRedirectScheme = vkIdRedirectScheme // Строго в формате vk{ID приложения}.
+    vkidClientId = clientId
+    vkidClientSecret = clientSecret
+}
